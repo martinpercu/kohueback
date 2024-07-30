@@ -33,7 +33,7 @@ app.get('/api/test', (req, res) => {
   const gol = {
     algo: 'somos nosotros'
   };
-  console.log("TESTEANDO");
+  // console.log("TESTEANDO");
   res.send(gol)
 });
 
