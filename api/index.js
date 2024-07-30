@@ -25,7 +25,10 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/api', (req, res) => {
-  res.send({estamos: 'server de express'})
+  const gol = {
+  algo_importante: 'somos nosotros server expres'
+};
+  res.send(gol)
 });
 
 
