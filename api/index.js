@@ -11,16 +11,16 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 
-const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com'];
-const options = {
-  origin: (origin, callBack) => {
-    if (whitelist.includes(origin)) {
-      callBack(null, true)
-    } else {
-      callBack(new Error('no permission'))
-    }
-  }
-}
+// const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com'];
+// const options = {
+//   origin: (origin, callBack) => {
+//     if (whitelist.includes(origin)) {
+//       callBack(null, true)
+//     } else {
+//       callBack(new Error('no permission'))
+//     }
+//   }
+// }
 
 // app.use(cors(options));
 app.use(cors());
@@ -50,4 +50,4 @@ app.listen(3000, () => {
   console.log('We are in port ==>  ' + port);
 });
 
-console.log("aca estamos");
+// console.log("aca estamos");
