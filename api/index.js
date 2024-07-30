@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/api', (req, res) => {
-  res.send('server de express')
+  res.send({estamos: 'server de express'})
 });
 
 
