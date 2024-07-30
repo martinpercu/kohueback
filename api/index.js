@@ -51,3 +51,5 @@ app.listen(3000, () => {
 });
 
 // console.log("aca estamos");
+
+module.exports = app;
