@@ -22,8 +22,8 @@ const options = {
   }
 }
 
-app.use(cors(options));
-// app.use(cors());
+// app.use(cors(options));
+app.use(cors());
 
 app.get('/api/test', (req, res) => {
   const gol = {
