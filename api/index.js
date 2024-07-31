@@ -53,3 +53,7 @@ app.post('/api/create_user', async (req, res) => {
 app.listen(3000, () => {
   console.log('We are in port ==>  ' + port);
 });
+
+
+module.exports = app
+
