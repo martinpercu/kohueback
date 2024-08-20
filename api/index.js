@@ -2,10 +2,8 @@ const express = require('express');
 
 const cors = require('cors');
 
-// const testStripeKey = process.env.TEST_STRIPE;
-const testStripeKey =
-  process.env.TEST_STRIPE ||
-  'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
+const testStripeKey = process.env.TEST_STRIPE;
+// const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
 
 const stripe = require('stripe')(testStripeKey);
 
@@ -74,7 +72,7 @@ app.get('/api/get_prices', async (req, res) => {
 });
 
 app.get('/api/get_products', async (req, res) => {
-  console.log('aca estamos pidiendo precios');
+  console.log('aca estamos pidiendo productos');
   const products = await stripe.products.list({
     limit: 8,
   });
@@ -89,16 +87,16 @@ app.get('/api/create-checkout-session', async (req, res) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'T-shirt',
+            name: 'Alta T-shirt',
           },
-          unit_amount: 2000,
+          unit_amount: 1550,
         },
-        quantity: 1,
+        quantity: 3,
       },
     ],
     mode: 'payment',
     success_url: 'http://localhost:4200/success',
-    cancel_url: 'http://localhost:4200/cancel',
+    cancel_url: 'http://localhost:4200/test',
   });
 
   res.redirect(303, session.url);
