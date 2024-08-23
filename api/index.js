@@ -2,8 +2,13 @@ const express = require('express');
 
 const cors = require('cors');
 
-const testStripeKey = process.env.TEST_STRIPE;
-// const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
+// const testStripeKey = process.env.TEST_STRIPE;
+const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
+
+
+// const domainURL = process.env.DOMAIN_URL;
+const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
+
 
 const stripe = require('stripe')(testStripeKey);
 
@@ -12,16 +17,16 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com'];
-// const options = {
-//   origin: (origin, callBack) => {
-//     if (whitelist.includes(origin)) {
-//       callBack(null, true)
-//     } else {
-//       callBack(new Error('no permission'))
-//     }
-//   }
-// }
+const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
+const options = {
+  origin: (origin, callBack) => {
+    if (whitelist.includes(origin)) {
+      callBack(null, true)
+    } else {
+      callBack(new Error('no permission'))
+    }
+  }
+}
 
 // app.use(cors(options));
 
@@ -80,27 +85,52 @@ app.get('/api/get_products', async (req, res) => {
   res.send(products);
 });
 
-app.get('/api/create-checkout-session', async (req, res) => {
+app.post('/api/create-checkout-session', async (req, res) => {
+  const user = req.body.user;
+  console.log(user);
+  const product = req.body.product;
+  console.log(product);
+  const quantity = req.body.quantity;
+  console.log(quantity);
+  const user_email = user.email;
+
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Alta T-shirt',
-          },
-          unit_amount: 1550,
-        },
-        quantity: 3,
+        price: 'price_1PoafdRtorj52eamNKQZ5uCN',
+        quantity: quantity,
       },
+      // {
+      //   price_data: {
+      //     currency: 'usd',
+      //     product_data: {
+      //       name: 'Alta T-shirt',
+      //     },
+      //     unit_amount: 1550,
+      //   },
+      //   quantity: 3,
+      // },
     ],
+    customer_email: user_email,
     mode: 'payment',
-    success_url: 'http://localhost:4200/success',
-    cancel_url: 'http://localhost:4200/test',
+    billing_address_collection: 'required',
+    shipping_address_collection: {
+      allowed_countries: ['US']
+    },
+    // success_url: 'http://localhost:4200/success',
+    success_url: `${domainURL}/members`,
+    cancel_url: `${domainURL}/members`,
+    locale: 'en'
+
   });
 
-  res.redirect(303, session.url);
-  // res.send(session.url);
+  const respuesta = {
+    url: session.url,
+  };
+  res.send(respuesta);
+
+  // res.redirect(303, session.url);
+  // res.send(session);
 });
 
 
