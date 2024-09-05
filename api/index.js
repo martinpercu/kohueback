@@ -50,11 +50,30 @@ app.get('/api/test', (req, res) => {
 
 app.post('/api/create_user', async (req, res) => {
   const user = req.body.user;
-  console.log('aca etamos');
-  console.log(user);
+  // console.log('aca etamos');
+  // console.log(user);
   const customer = await stripe.customers.create(user);
   console.log(customer);
   res.send(customer);
+});
+
+// app.post('/api/update_user', async (req, res) => {
+//   const userStripeId = req.body.user.stripeCustomerId;
+//   console.log(userStripeId);
+//   const customer = await stripe.customers.update(
+//     userStripeId,
+//     );
+//   console.log(customer);
+//   res.send(customer);
+// });
+
+app.get('/api/get_customers', async (req, res) => {
+  console.log('aca estamos pidiendo productos');
+  const customers = await stripe.customers.list({
+    limit: 5,
+  });
+  console.log(customers);
+  res.send(customers);
 });
 
 app.get('/api/get_user', async (req, res) => {
@@ -92,7 +111,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
   console.log(product);
   const quantity = req.body.quantity;
   console.log(quantity);
-  const user_email = user.email;
+  const customerStripeId = req.body.user.stripeCustomerId;
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
@@ -111,7 +130,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
       //   quantity: 3,
       // },
     ],
-    customer_email: user_email,
+    customer: customerStripeId,
+    // customer_email: user_email,
     mode: 'payment',
     billing_address_collection: 'required',
     shipping_address_collection: {
@@ -128,10 +148,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
     url: session.url,
   };
   res.send(respuesta);
-
-  // res.redirect(303, session.url);
-  // res.send(session);
 });
+
+
 
 
 app.listen(3000, () => {
