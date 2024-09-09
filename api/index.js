@@ -151,6 +151,27 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 
+app.get('/api/payment_intents', async (req, res) => {
+  const payment_intents = await stripe.paymentIntents.list({
+    limit: 8,
+  });
+  console.log(payment_intents);
+  res.send(payment_intents);
+});
+
+app.post('/api/payment_intents_by_user', async (req, res) => {
+  const user = req.body.user;
+  console.log(user);
+  const userID = req.body.user.stripeCustomerId;
+  console.log(userID);
+  const payment_intents = await stripe.paymentIntents.list({
+    customer: userID,
+    limit: 8,
+  });
+  console.log(payment_intents);
+  res.send(payment_intents);
+});
+
 
 
 app.listen(3000, () => {
