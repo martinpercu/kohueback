@@ -57,6 +57,20 @@ app.post('/api/create_user', async (req, res) => {
   res.send(customer);
 });
 
+app.post('/api/update_user', async (req, res) => {
+  const userID = req.body.stripeId;
+  const user = req.body.user;
+  // console.log('aca etamos');
+  console.log(userID);
+  console.log(user);
+  const customer = await stripe.customers.update(
+    userID,
+    user
+  );
+  // console.log(customer);
+  res.send(customer);
+});
+
 // app.post('/api/update_user', async (req, res) => {
 //   const userStripeId = req.body.user.stripeCustomerId;
 //   console.log(userStripeId);
