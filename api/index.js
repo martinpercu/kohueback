@@ -44,14 +44,11 @@ app.get('/api/test', (req, res) => {
     algo: 'somos nosotros',
     testkey: testStripeKey,
   };
-  // console.log("TESTEANDO");
   res.send(gol);
 });
 
 app.post('/api/create_user', async (req, res) => {
   const user = req.body.user;
-  // console.log('aca etamos');
-  // console.log(user);
   const customer = await stripe.customers.create(user);
   console.log(customer);
   res.send(customer);
@@ -60,7 +57,6 @@ app.post('/api/create_user', async (req, res) => {
 app.post('/api/update_user', async (req, res) => {
   const userID = req.body.stripeId;
   const user = req.body.user;
-  // console.log('aca etamos');
   console.log(userID);
   console.log(user);
   const customer = await stripe.customers.update(
@@ -71,15 +67,6 @@ app.post('/api/update_user', async (req, res) => {
   res.send(customer);
 });
 
-// app.post('/api/update_user', async (req, res) => {
-//   const userStripeId = req.body.user.stripeCustomerId;
-//   console.log(userStripeId);
-//   const customer = await stripe.customers.update(
-//     userStripeId,
-//     );
-//   console.log(customer);
-//   res.send(customer);
-// });
 
 app.get('/api/get_customers', async (req, res) => {
   console.log('aca estamos pidiendo productos');
@@ -132,17 +119,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       {
         price: 'price_1PoafdRtorj52eamNKQZ5uCN',
         quantity: quantity,
-      },
-      // {
-      //   price_data: {
-      //     currency: 'usd',
-      //     product_data: {
-      //       name: 'Alta T-shirt',
-      //     },
-      //     unit_amount: 1550,
-      //   },
-      //   quantity: 3,
-      // },
+      }
     ],
     customer: customerStripeId,
     // customer_email: user_email,
@@ -151,7 +128,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     shipping_address_collection: {
       allowed_countries: ['US']
     },
-    // success_url: 'http://localhost:4200/success',
     success_url: `${domainURL}/members`,
     cancel_url: `${domainURL}/members`,
     locale: 'en'
