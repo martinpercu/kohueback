@@ -111,13 +111,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
   const product = req.body.product;
   console.log(product);
   const quantity = req.body.quantity;
-  console.log(quantity);
+  // console.log(quantity);
   const customerStripeId = req.body.user.stripeCustomerId;
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
-        price: 'price_1PoafdRtorj52eamNKQZ5uCN',
+        price: 'price_1PyJWtRtorj52eamiunu3V4r',
         quantity: quantity,
       }
     ],
@@ -145,7 +145,7 @@ app.get('/api/payment_intents', async (req, res) => {
   const payment_intents = await stripe.paymentIntents.list({
     limit: 8,
   });
-  console.log(payment_intents);
+  // console.log(payment_intents);
   res.send(payment_intents);
 });
 
@@ -158,7 +158,7 @@ app.post('/api/payment_intents_by_user', async (req, res) => {
     customer: userID,
     limit: 8,
   });
-  console.log(payment_intents);
+  // console.log(payment_intents);
   res.send(payment_intents);
 });
 
