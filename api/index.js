@@ -123,8 +123,15 @@ app.post('/api/create-checkout-session', async (req, res) => {
     ],
     customer: customerStripeId,
     // customer_email: user_email,
-    mode: 'payment',
+    automatic_tax: {
+      enabled: true,
+    },
     billing_address_collection: 'required',
+    customer_update: {
+      // address: auto,
+      shipping: 'auto'
+    },
+    mode: 'payment',
     shipping_address_collection: {
       allowed_countries: ['US']
     },
