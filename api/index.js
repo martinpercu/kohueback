@@ -131,6 +131,17 @@ app.post('/api/create-checkout-session', async (req, res) => {
       // address: auto,
       shipping: 'auto'
     },
+    shipping_options: [
+      {
+        shipping_rate: "shr_1Pzh5JRtorj52eamhpKyUEpL"
+      },
+      {
+        shipping_rate: "shr_1Pzh4nRtorj52eamvxRLabqL"
+      },
+      {
+        shipping_rate: "shr_1Pzh4ERtorj52eamXRL27RHT"
+      }
+    ],
     mode: 'payment',
     shipping_address_collection: {
       allowed_countries: ['US']
