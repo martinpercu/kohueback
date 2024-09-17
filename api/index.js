@@ -107,12 +107,14 @@ app.get('/api/get_products', async (req, res) => {
 
 app.post('/api/create-checkout-session', async (req, res) => {
   const user = req.body.user;
-  console.log(user);
+  // console.log(user);
   const product = req.body.product;
-  console.log(product);
+  // console.log(product);
   const quantity = req.body.quantity;
   // console.log(quantity);
   const customerStripeId = req.body.user.stripeCustomerId;
+  const stripeShippingId = req.body.stripeShippingId;
+  // console.log(stripeShippingId);
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
@@ -133,14 +135,14 @@ app.post('/api/create-checkout-session', async (req, res) => {
     },
     shipping_options: [
       {
-        shipping_rate: "shr_1Pzh5JRtorj52eamhpKyUEpL"
+        shipping_rate: stripeShippingId
       },
-      {
-        shipping_rate: "shr_1Pzh4nRtorj52eamvxRLabqL"
-      },
-      {
-        shipping_rate: "shr_1Pzh4ERtorj52eamXRL27RHT"
-      }
+      // {
+      //   shipping_rate: "shr_1Pzh4nRtorj52eamvxRLabqL"
+      // },
+      // {
+      //   shipping_rate: "shr_1Pzh4ERtorj52eamXRL27RHT"
+      // }
     ],
     mode: 'payment',
     shipping_address_collection: {
