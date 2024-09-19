@@ -7,7 +7,8 @@ const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PV
 
 
 // const domainURL = process.env.DOMAIN_URL;
-const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
+const domainURL = 'https://vineyardsinandes.web.app/' || 'http://localhost:4200';
+// const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
 
 
 const stripe = require('stripe')(testStripeKey);
@@ -28,9 +29,9 @@ const options = {
   }
 }
 
-// app.use(cors(options));
+app.use(cors(options));
 
-app.use(cors());
+// app.use(cors());
 
 app.get('/api', (req, res) => {
   const gol = {
