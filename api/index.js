@@ -18,20 +18,20 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
-const options = {
-  origin: (origin, callBack) => {
-    if (whitelist.includes(origin)) {
-      callBack(null, true)
-    } else {
-      callBack(new Error('no permission'))
-    }
-  }
-}
+// const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
+// const options = {
+//   origin: (origin, callBack) => {
+//     if (whitelist.includes(origin)) {
+//       callBack(null, true)
+//     } else {
+//       callBack(new Error('no permission'))
+//     }
+//   }
+// }
 
-app.use(cors(options));
+// app.use(cors(options));
 
-// app.use(cors());
+app.use(cors());
 
 app.get('/api', (req, res) => {
   const gol = {
@@ -120,7 +120,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
-        price: 'price_1Pyd3dRtorj52eamcfjebFTc',
+        price: 'price_1Q1F0sRtorj52eam1OYBp40D',
         quantity: quantity,
       }
     ],
@@ -178,6 +178,19 @@ app.post('/api/payment_intents_by_user', async (req, res) => {
   const payment_intents = await stripe.paymentIntents.list({
     customer: userID,
     limit: 8,
+  });
+  // console.log(payment_intents);
+  res.send(payment_intents);
+});
+
+app.post('/api/payment_intents_by_user/:id/', async (req, res) => {
+  const user = req.body.user;
+  console.log(user);
+  const id = req.body.user.stripeCustomerId;
+  console.log(id);
+  const payment_intents = await stripe.paymentIntents.list({
+    // customer: userID,
+    // limit: 8,
   });
   // console.log(payment_intents);
   res.send(payment_intents);
