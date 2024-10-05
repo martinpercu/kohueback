@@ -2,13 +2,14 @@ const express = require('express');
 
 const cors = require('cors');
 
-// const testStripeKey = process.env.TEST_STRIPE;
+// const testStripeKey = process.env.PAYMENT_KEY;
 const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
 
 
+
 // const domainURL = process.env.DOMAIN_URL;
-const domainURL = 'https://vineyardsinandes.web.app/' || 'http://localhost:4200';
-// const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
+// const domainURL = 'https://vineyardsinandes.web.app/' || 'http://localhost:4200';
+const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
 
 
 const stripe = require('stripe')(testStripeKey);
@@ -18,20 +19,20 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
-const options = {
-  origin: (origin, callBack) => {
-    if (whitelist.includes(origin)) {
-      callBack(null, true)
-    } else {
-      callBack(new Error('no permission'))
-    }
-  }
-}
+// const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
+// const options = {
+//   origin: (origin, callBack) => {
+//     if (whitelist.includes(origin)) {
+//       callBack(null, true)
+//     } else {
+//       callBack(new Error('no permission'))
+//     }
+//   }
+// }
 
-app.use(cors(options));
+// app.use(cors(options));
 
-// app.use(cors());
+app.use(cors());
 
 app.get('/api', (req, res) => {
   const gol = {
@@ -183,17 +184,21 @@ app.post('/api/payment_intents_by_user', async (req, res) => {
   res.send(payment_intents);
 });
 
-app.post('/api/payment_intents_by_user/:id/', async (req, res) => {
-  const user = req.body.user;
-  console.log(user);
-  const id = req.body.user.stripeCustomerId;
-  console.log(id);
-  const payment_intents = await stripe.paymentIntents.list({
-    // customer: userID,
-    // limit: 8,
+app.get('/api/sessions', async (req, res) => {
+  const sessions = await stripe.checkout.sessions.list({
+    customer: 'cus_Qt114pJ4zIWSFU',
+    limit: 5,
   });
-  // console.log(payment_intents);
-  res.send(payment_intents);
+  res.send(sessions);
+});
+
+app.get('/api/sessionsItems', async (req, res) => {
+  const sessions = await stripe.checkout.sessions.retrieve(
+    'cs_test_a1sbxqs3qmnsnNPty2vexvdGg7YOOQ2kucHDuTu0bZ443dYo1bQK9NmLtC',
+    {
+    expand: ['line_items'],
+    });
+  res.send(sessions);
 });
 
 
