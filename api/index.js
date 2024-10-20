@@ -9,8 +9,8 @@ const testStripeKey = process.env.TEST_STRIPE;
 
 
 // const domainURL = process.env.DOMAIN_URL;
-// const domainURL = 'https://vineyardsinandes.web.app/' || 'http://localhost:4200';
-const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
+const domainURL = 'https://vineyardsinandes.web.app';
+// const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
 
 const stripe = require('stripe')(testStripeKey);
 
