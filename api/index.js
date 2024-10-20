@@ -3,9 +3,9 @@ const express = require('express');
 const cors = require('cors');
 
 
-// const testStripeKey = process.env.PAYMENT_KEY;
+const testStripeKey = process.env.PAYMENT_KEY;
 // const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
-const testStripeKey = process.env.TEST_STRIPE;
+// const testStripeKey = process.env.TEST_STRIPE;
 
 
 // const domainURL = process.env.DOMAIN_URL;
