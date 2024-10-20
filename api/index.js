@@ -9,7 +9,7 @@ const testStripeKey = process.env.PAYMENT_KEY;
 
 
 // const domainURL = process.env.DOMAIN_URL;
-const domainURL = 'https://vineyardsinandes.web.app';
+const domainURL = 'https://kohuewines.com';
 // const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
 
 const stripe = require('stripe')(testStripeKey);
