@@ -116,7 +116,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
   // console.log(quantity);
   const customerStripeId = req.body.user.stripeCustomerId;
   const stripeShippingId = req.body.stripeShippingId;
-  const priceProductId = req.body.priceProductId
+  const priceProductId = req.body.priceProductId;
+  const californiaTaxId = req.body.californiaTaxId;
   console.log(priceProductId);
 
   const session = await stripe.checkout.sessions.create({
@@ -126,12 +127,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
         // price: 'price_1QC1OKRtorj52eamW0qSiCnd',
         price: priceProductId,
         quantity: quantity,
+        tax_rates: [californiaTaxId]
       }
     ],
     customer: customerStripeId,
     // customer_email: user_email,
     automatic_tax: {
-      enabled: true,
+      enabled: false,
     },
     billing_address_collection: 'required',
     customer_update: {
