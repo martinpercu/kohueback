@@ -107,6 +107,7 @@ app.get('/api/get_products', async (req, res) => {
   res.send(products);
 });
 
+
 app.post('/api/create-checkout-session', async (req, res) => {
   const user = req.body.user;
   // console.log(user);
@@ -157,6 +158,55 @@ app.post('/api/create-checkout-session', async (req, res) => {
     },
     success_url: `${domainURL}/members`,
     cancel_url: `${domainURL}/members`,
+    locale: 'en'
+
+  });
+
+  const respuesta = {
+    url: session.url,
+  };
+  res.send(respuesta);
+});
+
+app.post('/api/directlink-create-checkout-session', async (req, res) => {
+  const quantity = req.body.quantity;
+  // console.log(quantity);
+  const stripeShippingId1 = req.body.stripeShippingId1;
+  const stripeShippingId2 = req.body.stripeShippingId2;
+  const stripeShippingId3 = req.body.stripeShippingId3;
+  const priceProductId = req.body.priceProductId;
+  const californiaTaxId = req.body.californiaTaxId;
+  console.log(priceProductId);
+
+  const session = await stripe.checkout.sessions.create({
+    line_items: [
+      {
+        price: priceProductId,
+        quantity: quantity,
+        tax_rates: [californiaTaxId]
+      }
+    ],
+    automatic_tax: {
+      enabled: false,
+    },
+    billing_address_collection: 'required',
+    shipping_options: [
+      {
+        shipping_rate: stripeShippingId1
+      },
+      {
+        shipping_rate: stripeShippingId2
+      },
+      {
+        shipping_rate: stripeShippingId3
+      }
+    ],
+    mode: 'payment',
+    shipping_address_collection: {
+      allowed_countries: ['US']
+    },
+    success_url: `${domainURL}/success_offering`,
+    cancel_url: `${domainURL}/offering`,
     locale: 'en'
 
   });
