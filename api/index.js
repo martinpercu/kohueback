@@ -3,9 +3,9 @@ const express = require('express');
 const cors = require('cors');
 
 
-const testStripeKey = process.env.PAYMENT_KEY;
+// const testStripeKey = process.env.PAYMENT_KEY;
 // const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
-// const testStripeKey = process.env.TEST_STRIPE;
+const testStripeKey = process.env.TEST_STRIPE;
 
 
 // const domainURL = process.env.DOMAIN_URL;
@@ -176,7 +176,9 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
   const stripeShippingId3 = req.body.stripeShippingId3;
   const priceProductId = req.body.priceProductId;
   const californiaTaxId = req.body.californiaTaxId;
-  console.log(priceProductId);
+  // console.log(priceProductId);
+  // console.log("quantity abajo");
+  // console.log(quantity);
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
@@ -184,8 +186,11 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
         price: priceProductId,
         quantity: quantity,
         tax_rates: [californiaTaxId]
-      }
+      },
     ],
+    metadata: {
+      reseller: 'Mario'
+    },
     automatic_tax: {
       enabled: false,
     },
@@ -207,8 +212,10 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
     },
     success_url: `${domainURL}/success_offering`,
     cancel_url: `${domainURL}/offering`,
-    locale: 'en'
-
+    locale: 'en',
+    // metadata: {
+    //   reseller: 'Mario'
+    // }
   });
 
   const respuesta = {
