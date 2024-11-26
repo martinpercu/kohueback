@@ -2,14 +2,13 @@ const express = require('express');
 
 const cors = require('cors');
 
-
-// const testStripeKey = process.env.PAYMENT_KEY;
+const testStripeKey = process.env.PAYMENT_KEY;
 // const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
-const testStripeKey = process.env.TEST_STRIPE;
+// const testStripeKey = process.env.TEST_STRIPE;
 
 
-// const domainURL = process.env.DOMAIN_URL;
-const domainURL = 'https://kohuewines.com';
+const domainURL = process.env.DOMAIN_URL;
+// const domainURL = 'https://kohuewines.com';
 // const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
 
 const stripe = require('stripe')(testStripeKey);
@@ -19,20 +18,20 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
-const options = {
-  origin: (origin, callBack) => {
-    if (whitelist.includes(origin)) {
-      callBack(null, true)
-    } else {
-      callBack(new Error('no permission'))
-    }
-  }
-}
+// const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
+// const options = {
+//   origin: (origin, callBack) => {
+//     if (whitelist.includes(origin)) {
+//       callBack(null, true)
+//     } else {
+//       callBack(new Error('no permission'))
+//     }
+//   }
+// }
 
-app.use(cors(options));
+// app.use(cors(options));
 
-// app.use(cors());
+app.use(cors());
 
 app.get('/api', (req, res) => {
   const gol = {
