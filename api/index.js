@@ -205,7 +205,8 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
       allowed_countries: ['US'],
     },
     success_url: `${domainURL}/success_offering`,
-    cancel_url: `${domainURL}/offering`,
+    // cancel_url: `${domainURL}/offering`,
+    cancel_url: `${domainURL}/offer1`,
     locale: 'en',
     // metadata: {
     //   reseller: 'Mario'
