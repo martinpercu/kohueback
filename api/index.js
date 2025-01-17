@@ -60,14 +60,10 @@ app.post('/api/update_user', async (req, res) => {
   const user = req.body.user;
   console.log(userID);
   console.log(user);
-  const customer = await stripe.customers.update(
-    userID,
-    user
-  );
+  const customer = await stripe.customers.update(userID, user);
   // console.log(customer);
   res.send(customer);
 });
-
 
 app.get('/api/get_customers', async (req, res) => {
   console.log('aca estamos pidiendo productos');
@@ -106,7 +102,6 @@ app.get('/api/get_products', async (req, res) => {
   res.send(products);
 });
 
-
 app.post('/api/create-checkout-session', async (req, res) => {
   const user = req.body.user;
   // console.log(user);
@@ -127,8 +122,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         // price: 'price_1QC1OKRtorj52eamW0qSiCnd',
         price: priceProductId,
         quantity: quantity,
-        tax_rates: [californiaTaxId]
-      }
+        tax_rates: [californiaTaxId],
+      },
     ],
     customer: customerStripeId,
     // customer_email: user_email,
@@ -138,11 +133,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
     billing_address_collection: 'required',
     customer_update: {
       // address: auto,
-      shipping: 'auto'
+      shipping: 'auto',
     },
     shipping_options: [
       {
-        shipping_rate: stripeShippingId
+        shipping_rate: stripeShippingId,
       },
       // {
       //   shipping_rate: "shr_1Pzh4nRtorj52eamvxRLabqL"
@@ -153,12 +148,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
     ],
     mode: 'payment',
     shipping_address_collection: {
-      allowed_countries: ['US']
+      allowed_countries: ['US'],
     },
     success_url: `${domainURL}/members`,
     cancel_url: `${domainURL}/members`,
-    locale: 'en'
-
+    locale: 'en',
   });
 
   const respuesta = {
@@ -179,16 +173,17 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
   // console.log("quantity abajo");
   // console.log(quantity);
 
+
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
         price: priceProductId,
         quantity: quantity,
-        tax_rates: [californiaTaxId]
+        tax_rates: [californiaTaxId],
       },
     ],
     metadata: {
-      reseller: 'Mario'
+      reseller: 'Mario',
     },
     automatic_tax: {
       enabled: false,
@@ -196,18 +191,18 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
     billing_address_collection: 'required',
     shipping_options: [
       {
-        shipping_rate: stripeShippingId1
+        shipping_rate: stripeShippingId1,
       },
       {
-        shipping_rate: stripeShippingId2
+        shipping_rate: stripeShippingId2,
       },
       {
-        shipping_rate: stripeShippingId3
-      }
+        shipping_rate: stripeShippingId3,
+      },
     ],
     mode: 'payment',
     shipping_address_collection: {
-      allowed_countries: ['US']
+      allowed_countries: ['US'],
     },
     success_url: `${domainURL}/success_offering`,
     cancel_url: `${domainURL}/offering`,
@@ -222,7 +217,6 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
   };
   res.send(respuesta);
 });
-
 
 app.get('/api/payment_intents', async (req, res) => {
   const payment_intents = await stripe.paymentIntents.list({
@@ -257,12 +251,104 @@ app.get('/api/sessionsItems', async (req, res) => {
   const sessions = await stripe.checkout.sessions.retrieve(
     'cs_test_a1sbxqs3qmnsnNPty2vexvdGg7YOOQ2kucHDuTu0bZ443dYo1bQK9NmLtC',
     {
-    expand: ['line_items'],
-    });
+      expand: ['line_items'],
+    },
+  );
   res.send(sessions);
 });
 
+app.get('/api/customers/orders/:id', async (req, res) => {
+  console.log('estamos aca');
+  try {
+    const { id } = req.params;
+    const customerId = id;
 
+    const fullOrders = await stripe.paymentIntents.list({
+      customer: customerId, // The customer whose payment history you want
+      limit: 10, // Optional: You can adjust the limit to control how many records to fetch
+    });
+
+    console.log(fullOrders.data); // Log or process the list of PaymentIntents
+    res.send(fullOrders);
+  } catch (error) {
+    console.error('Error retrieving payment history:', error);
+  }
+});
+
+app.get('/api/customers/sessions/:id', async (req, res) => {
+  console.log('sessions aca');
+  try {
+    const { id } = req.params;
+    const customerId = id;
+    // List all Checkout Sessions for the customer
+    const sessions = await stripe.checkout.sessions.list({
+      customer: customerId,
+      limit: 10, // Optional: You can adjust the limit
+    });
+
+    // Log the session IDs and other details
+    sessions.data.forEach((session) => {
+      console.log(`Checkout Session ID: ${session.id}`);
+      console.log(`Session Status: ${session.status}`);
+      console.log(
+        `Amount Total: ${session.amount_total / 100} ${session.currency}`,
+      );
+      console.log(
+        `Created: ${new Date(session.created * 1000).toLocaleString()}`,
+      );
+    });
+    console.log(sessions);
+
+    res.send(sessions.data);
+  } catch (error) {
+    console.error('Error retrieving Checkout Sessions:', error);
+  }
+});
+
+app.post('/api/sessions/products-in-session', async (req, res) => {
+  console.log('products-in-session aca');
+  try {
+    const sessionsIds = req.body;
+    console.log(req.body);
+
+    const allLineItems = [];
+
+    // Loop through each sessionId
+    for (const sessionId of sessionsIds) {
+      // Retrieve the line items for each session
+      const lineItems = await stripe.checkout.sessions.listLineItems(
+        sessionId,
+        {
+          limit: 100, // Adjust based on your needs (pagination supported)
+        },
+      );
+      // Retrieve the Checkout Session using the session ID
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      // Convert the Unix timestamp to a JavaScript Date object
+      const createdAt = new Date(session.created * 1000); // Multiply by 1000 to convert from seconds to milliseconds
+
+      // Collect the line items
+      allLineItems.push({
+        sessionId,
+        createdAt: createdAt,
+        lineItems: lineItems.data,
+      });
+    }
+
+    // lineItems.data.forEach(item => {
+    //   console.log(`Product: ${item.description}`);
+    //   console.log(`Quantity: ${item.quantity}`);
+    //   console.log(`Amount: ${item.amount_total / 100} ${item.currency}`);
+    // });
+
+    console.log(allLineItems);
+
+    res.send(allLineItems);
+  } catch (error) {
+    console.error('Error retrieving Checkout Session line items:', error);
+  }
+});
 
 app.listen(3000, () => {
   console.log('We are in port ==>  ' + port);
