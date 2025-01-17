@@ -183,7 +183,7 @@ app.post('/api/directlink-create-checkout-session', async (req, res) => {
       },
     ],
     metadata: {
-      reseller: 'Mario',
+      reseller: 'ONE BOTTLE',
     },
     automatic_tax: {
       enabled: false,
