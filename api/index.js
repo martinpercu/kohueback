@@ -150,7 +150,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     shipping_address_collection: {
       allowed_countries: ['US'],
     },
-    success_url: `${domainURL}/members`,
+    success_url: `${domainURL}/succes`,
     cancel_url: `${domainURL}/members`,
     locale: 'en',
   });
@@ -284,7 +284,7 @@ app.get('/api/customers/sessions/:id', async (req, res) => {
     // List all Checkout Sessions for the customer
     const sessions = await stripe.checkout.sessions.list({
       customer: customerId,
-      limit: 10, // Optional: You can adjust the limit
+      limit: 200, // Optional: You can adjust the limit
     });
 
     // Log the session IDs and other details
