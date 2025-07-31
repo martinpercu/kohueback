@@ -18,6 +18,18 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+const corsOptions = {
+  origin: ['http://localhost:4200', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight explicitly
+app.options('*', cors(corsOptions));
+
 // const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
 // const options = {
 //   origin: (origin, callBack) => {
@@ -30,8 +42,7 @@ app.use(express.json());
 // }
 
 // app.use(cors(options));
-
-app.use(cors());
+// app.use(cors());
 
 app.get('/api', (req, res) => {
   const gol = {
@@ -103,6 +114,8 @@ app.get('/api/get_products', async (req, res) => {
 });
 
 app.post('/api/create-checkout-session', async (req, res) => {
+  console.log(req.body);
+
   const user = req.body.user;
   // console.log(user);
   const product = req.body.product;
@@ -144,6 +157,74 @@ app.post('/api/create-checkout-session', async (req, res) => {
       // },
       // {
       //   shipping_rate: "shr_1Pzh4ERtorj52eamXRL27RHT"
+      // }
+    ],
+    mode: 'payment',
+    shipping_address_collection: {
+      allowed_countries: ['US'],
+    },
+    success_url: `${domainURL}/succes`,
+    cancel_url: `${domainURL}/members`,
+    locale: 'en',
+  });
+
+  const respuesta = {
+    url: session.url,
+  };
+  res.send(respuesta);
+});
+
+
+app.post('/api/create-checkout-session-test-price', async (req, res) => {
+  console.log(req.body);
+
+  // const user = req.body.user;
+  // console.log(user);
+  // const product = req.body.product;
+  // console.log(product);
+  const quantity = req.body.quantity;
+  // console.log(quantity);
+  const customerStripeId = req.body.user.stripeCustomerId;
+  const stripeShippingId = req.body.stripeShippingId;
+  const priceProductId = req.body.priceProductId;
+  const californiaTaxId = req.body.californiaTaxId;
+  const shippingCost = req.body.shippingCost;
+
+  const itemsInLine = {
+        price: priceProductId,
+        quantity: quantity,
+        tax_rates: [californiaTaxId],
+  };
+
+  const booleanAutoTax = { enabled: false };
+
+  // Crear una tarifa de envío con el valor recibido del frontend
+  const shippingRate = await stripe.shippingRates.create({
+    display_name: 'Envío personalizado',
+    type: 'fixed_amount',
+    fixed_amount: {
+      amount: shippingCost * 100, // Convertir a centavos (Stripe usa la unidad más pequeña)
+      currency: 'usd', // Ajusta según tu moneda
+    },
+  });
+  console.log(shippingRate);
+
+  const session = await stripe.checkout.sessions.create({
+    line_items: [ itemsInLine ],
+    customer: customerStripeId,
+    // customer_email: user_email,
+    automatic_tax: booleanAutoTax,
+    billing_address_collection: 'required',
+    customer_update: {
+      // address: auto,
+      shipping: 'auto',
+    },
+    shipping_options: [
+      {
+        shipping_rate: shippingRate.id,
+      }
+      // {
+      //   shipping_rate: stripeShippingId,
       // }
     ],
     mode: 'payment',
