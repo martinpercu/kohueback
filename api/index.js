@@ -135,190 +135,211 @@ app.get('/api/get_products', async (req, res) => {
 });
 
 app.post('/api/create-checkout-session', async (req, res) => {
-  console.log(req.body);
+  try {
+    console.log('Creating checkout session:', req.body);
 
-  const user = req.body.user;
-  // console.log(user);
-  const product = req.body.product;
-  // console.log(product);
-  const quantity = req.body.quantity;
-  // console.log(quantity);
-  const customerStripeId = req.body.user.stripeCustomerId;
-  const stripeShippingId = req.body.stripeShippingId;
-  const priceProductId = req.body.priceProductId;
-  const californiaTaxId = req.body.californiaTaxId;
-  console.log(priceProductId);
+    const quantity = req.body.quantity;
+    const customerStripeId = req.body.user?.stripeCustomerId;
+    const stripeShippingId = req.body.stripeShippingId;
+    const priceProductId = req.body.priceProductId;
+    const californiaTaxId = req.body.californiaTaxId;
 
-  const session = await stripe.checkout.sessions.create({
-    line_items: [
-      {
-        // price: 'price_1Q1F0sRtorj52eam1OYBp40D',
-        // price: 'price_1QC1OKRtorj52eamW0qSiCnd',
-        price: priceProductId,
-        quantity: quantity,
-        tax_rates: [californiaTaxId],
+    // Validate required fields
+    if (!customerStripeId || !priceProductId || !stripeShippingId || !californiaTaxId) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        details: { customerStripeId, priceProductId, stripeShippingId, californiaTaxId }
+      });
+    }
+
+    console.log('Price ID:', priceProductId);
+
+    // Set timeout for Stripe API call
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Stripe API timeout')), 8000)
+    );
+
+    const sessionPromise = stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: priceProductId,
+          quantity: quantity,
+          tax_rates: [californiaTaxId],
+        },
+      ],
+      customer: customerStripeId,
+      automatic_tax: {
+        enabled: false,
       },
-    ],
-    customer: customerStripeId,
-    // customer_email: user_email,
-    automatic_tax: {
-      enabled: false,
-    },
-    billing_address_collection: 'required',
-    customer_update: {
-      // address: auto,
-      shipping: 'auto',
-    },
-    shipping_options: [
-      {
-        shipping_rate: stripeShippingId,
+      billing_address_collection: 'required',
+      customer_update: {
+        shipping: 'auto',
       },
-      // {
-      //   shipping_rate: "shr_1Pzh4nRtorj52eamvxRLabqL"
-      // },
-      // {
-      //   shipping_rate: "shr_1Pzh4ERtorj52eamXRL27RHT"
-      // }
-    ],
-    mode: 'payment',
-    shipping_address_collection: {
-      allowed_countries: ['US'],
-    },
-    success_url: `${domainURL}/succes`,
-    cancel_url: `${domainURL}/members`,
-    locale: 'en',
-  });
+      shipping_options: [
+        {
+          shipping_rate: stripeShippingId,
+        },
+      ],
+      mode: 'payment',
+      shipping_address_collection: {
+        allowed_countries: ['US'],
+      },
+      success_url: `${domainURL}/succes`,
+      cancel_url: `${domainURL}/members`,
+      locale: 'en',
+    });
 
-  const respuesta = {
-    url: session.url,
-  };
-  res.send(respuesta);
+    const session = await Promise.race([sessionPromise, timeoutPromise]);
+
+    console.log('Checkout session created successfully');
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({
+      error: 'Failed to create checkout session',
+      message: error.message
+    });
+  }
 });
 
 
 app.post('/api/create-checkout-session-test-price', async (req, res) => {
-  console.log(req.body);
+  try {
+    console.log('Creating test price checkout session:', req.body);
 
-  // const user = req.body.user;
-  // console.log(user);
-  // const product = req.body.product;
-  // console.log(product);
-  const quantity = req.body.quantity;
-  // console.log(quantity);
-  const customerStripeId = req.body.user.stripeCustomerId;
-  const stripeShippingId = req.body.stripeShippingId;
-  const priceProductId = req.body.priceProductId;
-  const californiaTaxId = req.body.californiaTaxId;
-  const shippingCost = req.body.shippingCost;
+    const quantity = req.body.quantity;
+    const customerStripeId = req.body.user?.stripeCustomerId;
+    const priceProductId = req.body.priceProductId;
+    const californiaTaxId = req.body.californiaTaxId;
+    const shippingCost = req.body.shippingCost;
 
-  const itemsInLine = {
-        price: priceProductId,
-        quantity: quantity,
-        tax_rates: [californiaTaxId],
-  };
+    if (!customerStripeId || !priceProductId || !californiaTaxId || !shippingCost) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-  const booleanAutoTax = { enabled: false };
+    // Set timeout for Stripe API calls (this endpoint makes 2 calls)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Stripe API timeout')), 8000)
+    );
 
-  // Crear una tarifa de envío con el valor recibido del frontend
-  const shippingRate = await stripe.shippingRates.create({
-    display_name: 'Envío personalizado',
-    type: 'fixed_amount',
-    fixed_amount: {
-      amount: shippingCost * 100, // Convertir a centavos (Stripe usa la unidad más pequeña)
-      currency: 'usd', // Ajusta según tu moneda
-    },
-  });
-  console.log(shippingRate);
+    // Create shipping rate and session
+    const createSessionPromise = (async () => {
+      const shippingRate = await stripe.shippingRates.create({
+        display_name: 'Envío personalizado',
+        type: 'fixed_amount',
+        fixed_amount: {
+          amount: shippingCost * 100,
+          currency: 'usd',
+        },
+      });
+      console.log('Shipping rate created:', shippingRate.id);
 
-  const session = await stripe.checkout.sessions.create({
-    line_items: [ itemsInLine ],
-    customer: customerStripeId,
-    // customer_email: user_email,
-    automatic_tax: booleanAutoTax,
-    billing_address_collection: 'required',
-    customer_update: {
-      // address: auto,
-      shipping: 'auto',
-    },
-    shipping_options: [
-      {
-        shipping_rate: shippingRate.id,
-      }
-      // {
-      //   shipping_rate: stripeShippingId,
-      // }
-    ],
-    mode: 'payment',
-    shipping_address_collection: {
-      allowed_countries: ['US'],
-    },
-    success_url: `${domainURL}/succes`,
-    cancel_url: `${domainURL}/members`,
-    locale: 'en',
-  });
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{
+          price: priceProductId,
+          quantity: quantity,
+          tax_rates: [californiaTaxId],
+        }],
+        customer: customerStripeId,
+        automatic_tax: { enabled: false },
+        billing_address_collection: 'required',
+        customer_update: {
+          shipping: 'auto',
+        },
+        shipping_options: [{
+          shipping_rate: shippingRate.id,
+        }],
+        mode: 'payment',
+        shipping_address_collection: {
+          allowed_countries: ['US'],
+        },
+        success_url: `${domainURL}/succes`,
+        cancel_url: `${domainURL}/members`,
+        locale: 'en',
+      });
 
-  const respuesta = {
-    url: session.url,
-  };
-  res.send(respuesta);
+      return session;
+    })();
+
+    const session = await Promise.race([createSessionPromise, timeoutPromise]);
+
+    console.log('Test price checkout session created successfully');
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating test price checkout session:', error);
+    res.status(500).json({
+      error: 'Failed to create checkout session',
+      message: error.message
+    });
+  }
 });
 
 app.post('/api/directlink-create-checkout-session', async (req, res) => {
-  const quantity = req.body.quantity;
-  // console.log(quantity);
-  const stripeShippingId1 = req.body.stripeShippingId1;
-  const stripeShippingId2 = req.body.stripeShippingId2;
-  const stripeShippingId3 = req.body.stripeShippingId3;
-  const priceProductId = req.body.priceProductId;
-  const californiaTaxId = req.body.californiaTaxId;
-  // console.log(priceProductId);
-  // console.log("quantity abajo");
-  // console.log(quantity);
+  try {
+    console.log('Creating directlink checkout session:', req.body);
 
+    const quantity = req.body.quantity;
+    const stripeShippingId1 = req.body.stripeShippingId1;
+    const stripeShippingId2 = req.body.stripeShippingId2;
+    const stripeShippingId3 = req.body.stripeShippingId3;
+    const priceProductId = req.body.priceProductId;
+    const californiaTaxId = req.body.californiaTaxId;
 
-  const session = await stripe.checkout.sessions.create({
-    line_items: [
-      {
-        price: priceProductId,
-        quantity: quantity,
-        tax_rates: [californiaTaxId],
-      },
-    ],
-    metadata: {
-      reseller: 'ONE BOTTLE',
-    },
-    automatic_tax: {
-      enabled: false,
-    },
-    billing_address_collection: 'required',
-    shipping_options: [
-      {
-        shipping_rate: stripeShippingId1,
-      },
-      {
-        shipping_rate: stripeShippingId2,
-      },
-      {
-        shipping_rate: stripeShippingId3,
-      },
-    ],
-    mode: 'payment',
-    shipping_address_collection: {
-      allowed_countries: ['US'],
-    },
-    success_url: `${domainURL}/success_offering`,
-    // cancel_url: `${domainURL}/offering`,
-    cancel_url: `${domainURL}/offer1`,
-    locale: 'en',
-    // metadata: {
-    //   reseller: 'Mario'
-    // }
-  });
+    if (!priceProductId || !californiaTaxId || !stripeShippingId1) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-  const respuesta = {
-    url: session.url,
-  };
-  res.send(respuesta);
+    // Set timeout for Stripe API call
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Stripe API timeout')), 8000)
+    );
+
+    const sessionPromise = stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: priceProductId,
+          quantity: quantity,
+          tax_rates: [californiaTaxId],
+        },
+      ],
+      metadata: {
+        reseller: 'ONE BOTTLE',
+      },
+      automatic_tax: {
+        enabled: false,
+      },
+      billing_address_collection: 'required',
+      shipping_options: [
+        {
+          shipping_rate: stripeShippingId1,
+        },
+        {
+          shipping_rate: stripeShippingId2,
+        },
+        {
+          shipping_rate: stripeShippingId3,
+        },
+      ],
+      mode: 'payment',
+      shipping_address_collection: {
+        allowed_countries: ['US'],
+      },
+      success_url: `${domainURL}/success_offering`,
+      cancel_url: `${domainURL}/offer1`,
+      locale: 'en',
+    });
+
+    const session = await Promise.race([sessionPromise, timeoutPromise]);
+
+    console.log('Directlink checkout session created successfully');
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating directlink checkout session:', error);
+    res.status(500).json({
+      error: 'Failed to create checkout session',
+      message: error.message
+    });
+  }
 });
 
 app.get('/api/payment_intents', async (req, res) => {
