@@ -2,8 +2,8 @@ const express = require('express');
 
 const cors = require('cors');
 
-// const testStripeKey = process.env.PAYMENT_KEY;
-const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
+const testStripeKey = process.env.PAYMENT_KEY;
+// const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
 // const testStripeKey = process.env.TEST_STRIPE;
 
 
@@ -330,16 +330,38 @@ app.get('/api/payment_intents', async (req, res) => {
 });
 
 app.post('/api/payment_intents_by_user', async (req, res) => {
-  const user = req.body.user;
-  console.log(user);
-  const userID = req.body.user.stripeCustomerId;
-  console.log(userID);
-  const payment_intents = await stripe.paymentIntents.list({
-    customer: userID,
-    limit: 8,
-  });
-  // console.log(payment_intents);
-  res.send(payment_intents);
+  try {
+    const user = req.body.user;
+    console.log('Fetching payment intents for user:', user);
+
+    if (!user || !user.stripeCustomerId) {
+      return res.status(400).json({ error: 'Missing user or stripeCustomerId' });
+    }
+
+    const userID = req.body.user.stripeCustomerId;
+    console.log('Customer ID:', userID);
+
+    // Set a timeout for the Stripe API call
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), 8000)
+    );
+
+    const stripePromise = stripe.paymentIntents.list({
+      customer: userID,
+      limit: 8,
+    });
+
+    const payment_intents = await Promise.race([stripePromise, timeoutPromise]);
+
+    console.log('Payment intents retrieved successfully');
+    res.json(payment_intents);
+  } catch (error) {
+    console.error('Error fetching payment intents:', error);
+    res.status(500).json({
+      error: 'Failed to fetch payment intents',
+      message: error.message
+    });
+  }
 });
 
 app.get('/api/sessions', async (req, res) => {
