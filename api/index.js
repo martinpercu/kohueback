@@ -2,33 +2,48 @@ const express = require('express');
 
 const cors = require('cors');
 
-const testStripeKey = process.env.PAYMENT_KEY;
-// const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
+// const testStripeKey = process.env.PAYMENT_KEY;
+const testStripeKey = process.env.TEST_STRIPE || 'sk_test_51PMADwRtorj52eamj42PVhENi4pZTMEOlOuP68cHhlxC4dZiqzfE955gCc2UB2aoZpdjolU9j6H1Gy5HvZgjMpdh00lx4pDAfC';
 // const testStripeKey = process.env.TEST_STRIPE;
 
 
-const domainURL = process.env.DOMAIN_URL;
+// const domainURL = process.env.DOMAIN_URL;
 // const domainURL = 'https://kohuewines.com';
-// const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
+const domainURL = process.env.DOMAIN_URL || 'http://localhost:4200';
 
 const stripe = require('stripe')(testStripeKey);
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json());
-
 const corsOptions = {
-  origin: ['http://localhost:4200', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:4200',
+      'https://vineyardsinandes.web.app',
+      'https://tupungatowineco.com',
+      'https://kohuewines.com'
+    ];
+
+    // Allow requests with no origin (like mobile apps, Postman, or same-origin)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
+  optionsSuccessStatus: 200
 };
 
+// CORS debe ir ANTES de express.json()
 app.use(cors(corsOptions));
-
-// Handle OPTIONS preflight explicitly
 app.options('*', cors(corsOptions));
+
+// Middleware de parsing después de CORS
+app.use(express.json());
 
 // const whitelist = ['http://localhost:3000', 'http://localhost:4200', 'https://api.stripe.com', 'https://vineyardsinandes.web.app', 'https://tupungatowineco.com', 'https://kohuewines.com'];
 // const options = {
